@@ -1,0 +1,1 @@
+/usr/bin/gcc  -O2 -g   -pthread CMakeFiles/svm-scale.dir/include/libsvm/svm-scale.o  -o ../bin/svm-scale -rdynamic -L/home/sdmiller/ros_sandbox/visual_feedback/libsvm/lib ../lib/libsvm.so -lm -Wl,-rpath,/home/sdmiller/ros_sandbox/visual_feedback/libsvm/lib 

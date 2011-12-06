@@ -1,0 +1,1 @@
+/usr/bin/gcc  -O2 -g   -pthread CMakeFiles/svm-predict.dir/include/libsvm/svm-predict.o  -o ../bin/svm-predict -rdynamic -L/home/sdmiller/ros_sandbox/visual_feedback/libsvm/lib ../lib/libsvm.so -lm -Wl,-rpath,/home/sdmiller/ros_sandbox/visual_feedback/libsvm/lib 

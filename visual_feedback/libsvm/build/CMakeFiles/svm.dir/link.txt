@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -O2 -g  -pthread -shared -Wl,-soname,libsvm.so -o ../lib/libsvm.so CMakeFiles/svm.dir/include/libsvm/svm.o 

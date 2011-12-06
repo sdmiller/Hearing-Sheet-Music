@@ -1,0 +1,17 @@
+<package>
+  <description brief="hsm_collection">
+
+     hsm_collection
+
+  </description>
+  <author>Stephen Miller</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/hsm_collection</url>
+  <depend package="opencv2"/>
+  <depend package="rospy"/>
+  <depend package="patch_vision"/>
+
+</package>
+
+

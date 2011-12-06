@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/sdmiller/ros_sandbox/visual_feedback/libsvm/include/libsvm/svm.cpp
+math.h
+-
+stdio.h
+-
+stdlib.h
+-
+ctype.h
+-
+float.h
+-
+string.h
+-
+stdarg.h
+-
+svm.h
+/home/sdmiller/ros_sandbox/visual_feedback/libsvm/include/libsvm/svm.h
+
+/home/sdmiller/ros_sandbox/visual_feedback/libsvm/include/libsvm/svm.h
+

@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/sdmiller/ros_sandbox/visual_feedback/libsvm/include/libsvm/svm-scale.c
+float.h
+-
+stdio.h
+-
+stdlib.h
+-
+ctype.h
+-
+string.h
+-
+

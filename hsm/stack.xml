@@ -1,0 +1,9 @@
+<stack>
+  <description brief="hsm">hsm</description>
+  <author>Maintained by Stephen Miller</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/hsm</url>
+  <depend stack="ros" />
+
+</stack>
