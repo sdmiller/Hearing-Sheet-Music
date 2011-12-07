@@ -30,6 +30,9 @@ class BBLabeler(ZoomWindow):
             self.select_mode = CREATE
             self.cur_pt = (x,y)
         elif event == cv2.EVENT_LBUTTONUP:
+            #Added: make sure it fits aspect ratio
+            ar = self.get_cur_ar()
+            y = (x - self.cur_pt[0])*ar[0]/float(ar[1]) + self.cur_pt[1]
             bb = BoundingBox.from_pts( self.cur_pt,(x,y) )
             self.labeled_bbs.append( LabeledExample( bb, self.get_cur_label() ) )
             self.temp_bb = None
@@ -50,6 +53,8 @@ class BBLabeler(ZoomWindow):
             self.select_mode = CREATE
 
         elif flags-32 == cv2.EVENT_FLAG_LBUTTON:
+            ar = self.get_cur_ar()
+            y = (x - self.cur_pt[0])*ar[0]/float(ar[1])+self.cur_pt[1]
             self.temp_bb = BoundingBox.from_pts( self.cur_pt,(x,y) )
         elif flags-32 == cv2.EVENT_FLAG_MBUTTON and self.select_mode == TRANSLATE:
             dx = x - self.cur_pt[0]
@@ -58,7 +63,8 @@ class BBLabeler(ZoomWindow):
             self.cur_pt = (x,y)
         elif flags-32 == cv2.EVENT_FLAG_RBUTTON and self.select_mode == SCALE:
             dx = x - self.cur_pt[0]
-            dy = y - self.cur_pt[1]
+            ar = self.get_cur_ar()
+            dy = dx*ar[0]/float(ar[1])
             self.labeled_bbs[self.selected_bb].bounding_box.width += dx
             self.labeled_bbs[self.selected_bb].bounding_box.height += dy
             self.cur_pt = (x,y)
@@ -69,7 +75,10 @@ class BBLabeler(ZoomWindow):
                 key = lambda l: bb_dist(self.labeled_bbs[l].bounding_box,(x,y)) )
 
     def get_cur_label(self):
-        return self.label_vals[self.cur_label_idx]
+        return self.label_vals[self.cur_label_idx].value
+
+    def get_cur_ar(self):
+        return self.label_vals[self.cur_label_idx].aspect_ratio
 
     @keycommand('=', "Increment label value", exits=False )
     def increment_cur_label(self):
@@ -99,7 +108,7 @@ class BBLabeler(ZoomWindow):
     def image_to_show(self):
         imcpy = self.image.copy()
         for l in self.labeled_bbs:
-            color = self.label_colors[self.label_vals.index(l.label_val)]
+            color = self.label_colors[[la.value for la in self.label_vals].index(l.label_val)]
             l.bounding_box.draw_to_image(imcpy,color,thickness=1)
         # If there's a temp bounding box, draw it
         if self.temp_bb:
@@ -109,8 +118,25 @@ class BBLabeler(ZoomWindow):
 def main(ags):
     image = cv2.imread( args.image )
     labelpath = "%s.lab"%args.image
-    label_colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,0,255)]
-    bbl = BBLabeler(image, args.label_values,label_colors[:len(args.label_values)], labelpath)
+    label_colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,0,255),(128,0,0),(0,128,0),(0,0,128),(128,128,0),(0,0,128),(128,0,128)]
+    label_values = read_vals(args.label_values)
+    bbl = BBLabeler(image, label_values,label_colors[:len(label_values)], labelpath)
+
+class LabelValue:
+    def __init__(self, value, aspect_ratio):
+        self.value = value
+        self.aspect_ratio = aspect_ratio
+
+def read_vals(label_vals_file):
+    f = open(label_vals_file)
+    label_values = []
+    for l in f.readlines():
+        tokens = l.split()
+        label = LabelValue(tokens[0], (int(tokens[1]),int(tokens[2])))
+        label_values.append(label)
+    return label_values
+
+
 
 
 def parse():
@@ -121,7 +147,7 @@ def parse():
                             required=True,
                             help='the image to label' )
     parser.add_argument(    '-l','--label-values',  dest='label_values', type=str,
-                            required=True, nargs='+' )
+                            required=True )
     return parser.parse_args()
 
 if __name__ == '__main__':
