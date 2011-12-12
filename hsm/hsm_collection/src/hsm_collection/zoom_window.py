@@ -183,7 +183,6 @@ class ZoomWindow(InteractiveWindow):
         else:
             height=unscaled_image.shape[0]
             width=unscaled_image.shape[1]
-            print unscaled_image.shape
             scaled_image = cv2.resize(unscaled_image, (width/self.zoom_out,height/self.zoom_out))
         cv2.imshow(self.name,scaled_image)
 

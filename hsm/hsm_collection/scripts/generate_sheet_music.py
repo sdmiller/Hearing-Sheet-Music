@@ -41,13 +41,16 @@ def parse():
                             help='width of image.')
     parser.add_argument(    '-H','--image-height',  dest='image_height', type=int,
                             default=1100,
-                            help='height-of-measure.')
+                            help='height of image.')
     parser.add_argument(    '-a','--accidentals',  dest='accidentals',
                             action='store_true', default=False,
                             help='include accidentals (sharp, flat)')
     parser.add_argument(    '-t','--title',  dest='title',
                             action='store_true', default=False,
                             help='include title')
+    parser.add_argument(    '-N','--nosave',  dest='nosave',
+                            action='store_true', default=False,
+                            help='do not save the image')
     parser.add_argument(    '-o','--output_image', dest='output_image',
                             required = True, help='place to save image' )
     return parser.parse_args()
@@ -55,13 +58,6 @@ def parse():
 def draw_note(img, note_type, loc, accidental,measure_height):
     """ returns bounding box """
     #For now, just draw a circle
-    #if note_type == QUARTER:
-    #    thickness = -1
-    #elif note_type == HALF:
-    #    thickness = 1
-    #else:
-    #    thickness = 3
-    #cv2.circle(img, loc, measure_height / 8., (0,0,0), thickness)
     if note_type == QUARTER:
         templ = cv2.imread('%s/quarter_masked.png'%TEMPLATES_FOLDER,0)
         offset = (20,91)
@@ -73,7 +69,7 @@ def draw_note(img, note_type, loc, accidental,measure_height):
         offset = (20,98)
     #Rescale, assuming template height is measure height
     scale = measure_height/float(templ.shape[0])
-    new_size = (templ.shape[1]*scale,templ.shape[0]*scale)
+    new_size = (int(templ.shape[1]*scale),int(templ.shape[0]*scale))
     templ_resized = cv2.resize(templ,new_size).astype('uint8')
     off_resized = (offset[0]*scale,offset[1]*scale)
     #Apply the image plus a mask
@@ -92,7 +88,7 @@ def draw_note(img, note_type, loc, accidental,measure_height):
         else:
             atempl = cv2.imread('%s/sharp_masked.png'%TEMPLATES_FOLDER,0)
             aoff   = (20,40)
-        atempl_resized = cv2.resize(atempl,(scale*atempl.shape[1],scale*atempl.shape[0]) )
+        atempl_resized = cv2.resize(atempl,(int(scale*atempl.shape[1]),int(scale*atempl.shape[0])) )
         aoff_resized = (aoff[0]*scale,aoff[1]*scale)
         atl =     (loc[0]-off_resized[0] - atempl_resized.shape[1]*0.8,
                    loc[1]-aoff_resized[1])
@@ -143,6 +139,7 @@ def main(args):
     beat_width = measure_width / (float(BPM))
     current_height = TOP_MARGIN
     labels = []
+    measure_bounds = []
     #Add a title, why not?
     if args.title:
         title_len = random.choice(range(20))+5
@@ -151,20 +148,24 @@ def main(args):
             title += random.choice([ chr(x) for x in range(ord('A'),ord('z')+1) ])
         cv2.putText(im, title, (MARGIN,0.5*TOP_MARGIN), cv2.FONT_HERSHEY_SIMPLEX, 0.7,(0,0,0))
     #Add the filename so we don't forget
-    cv2.putText(im, args.output_image, (args.image_width/2.,args.image_height-0.3*TOP_MARGIN), cv2.FONT_HERSHEY_SIMPLEX, 0.35,(0,0,0))
+    cv2.putText(im, args.output_image, (args.image_width/2,args.image_height-int(0.3*TOP_MARGIN)), cv2.FONT_HERSHEY_SIMPLEX, 0.35,(0,0,0))
     for r in range(args.measure_rows):
         for l in range(5):
             #Draw the staff line
-            cv2.line(im,(x_range[0],
-                current_height+l*line_spacing),
-                (x_range[1],current_height+l*line_spacing),
+            cv2.line(im,
+                    (int(x_range[0]),
+                int(current_height+l*line_spacing)),
+                (int(x_range[1]),int(current_height+l*line_spacing)),
                 (0,0,0))
         #Draw the measure breaks
         y_range = (current_height,current_height+measure_height)
         for m in range(args.measure_cols+1):
             break_x = x_range[0]+m*measure_width
-            cv2.line(im,(break_x,y_range[0]),(break_x,y_range[1]),
+            cv2.line(im,(int(break_x),int(y_range[0])),(int(break_x),int(y_range[1])),
                     (0,0,0) )
+            if m < args.measure_cols:
+                measure_bounds.append( [(break_x,y_range[0]),(break_x,y_range[1]),
+                                       (break_x+measure_width,y_range[0]),(break_x+measure_width,y_range[1])] )
         #Draw notes
         beats_left = BPM*args.measure_cols
         cur_x = x_range[0]+beat_width/2.
@@ -184,7 +185,16 @@ def main(args):
             beats_left = beats_left - BEATS[note_type]
             cur_x += beat_width*BEATS[note_type]
         current_height += measure_height + SPACE_BETWEEN_MEASURES
-            
+    f = open('./r%dc%d.mb'%(args.measure_rows,args.measure_cols),'w')
+    for mb in measure_bounds:
+        for pt in mb:
+            f.write('%f %f\t'%pt)
+        f.write('\n')
+    f.close()
+    if args.nosave:
+        cv2.imshow("Image", im)
+        cv2.waitKey(0)
+        return
     #Save the image and the label files
     cv2.imwrite(args.output_image, im)
     f = open(args.output_image+'.lab','w')
